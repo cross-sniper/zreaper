@@ -5,6 +5,7 @@ This file is part of zreaper, which provides a simple 2D vector class.
 """
 
 from typing import Union
+import math
 
 
 class Vec2:
@@ -107,6 +108,16 @@ class Vec2:
             maxY (float): The maximum y value.
         """
         return minX <= self.x <= maxX and minY <= self.y <= maxY
+
+
+    def radians(self) -> float:
+        """
+        Returns the angle of the vector in radians relative to the positive x-axis.
+
+        Returns:
+            float: The angle of the vector in radians.
+        """
+        return math.atan2(self.y, self.x)
 
 
 def clamp(vec: Vec2, minX: float, minY: float, maxX: float, maxY: float) -> None:
