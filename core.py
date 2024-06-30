@@ -1,6 +1,7 @@
 import pygame
 from pygame import *
 from pygame import mixer
+from . import obj
 import time
 
 
@@ -11,6 +12,7 @@ class Engine:
     _keys: dict
     _ExitOnEsc: bool
     _font: pygame.font.Font
+    _objects: list[obj.Node]
 
     def __init__(self, width: int, height: int, title: str) -> None:
         """
@@ -43,6 +45,21 @@ class Engine:
         self.gameLoop = None
         self.running = False
         self._ExitOnEsc = False
+        self._objects = []
+
+    def get_node_list_by_name(self,name: str) -> list[obj.Node]:
+        nodes = []
+        for node in self._objects:
+            if node.name == name:
+                nodes.append(node)
+        return nodes
+
+    def get_node_by_name(self,name: str) -> obj.Node:
+        for node in self._objects:
+            if node.name == name:
+                return node
+
+        raise Exception(f"unable to find node '{name}'")
 
     def drawText(self, text: str, x: int, y: int, size: int, color: pygame.Color):
         """
@@ -60,9 +77,26 @@ class Engine:
         textSurface = self._font.render(text, True, color)
         self.screen.blit(textSurface, (x, y))
 
-    def drawRect(
-        self, x: int, y: int, width: int, height: int, color: pygame.Color
-    ) -> None:
+    def new_node(self, x: int, y: int, width: int, height: int, color: pygame.Color, script: str | None = None, name: str | None=None) -> obj.Node:
+        """
+        Creates a new node.
+
+        Args:
+            x (int): The x-coordinate of the node.
+            y (int): The y-coordinate of the node.
+            width (int): The width of the node.
+            height (int): The height of the node.
+            color (pygame.Color): The color of the node.
+            script (str|None): Optional script to give this a behaviour.
+
+        Returns:
+            obj.Node: The created node.
+        """
+        node = obj.Node(x, y, width, height, color, script,self, name)
+        self._objects.append(node)
+        return node
+
+    def drawRect(self, x: int, y: int, width: int, height: int, color: pygame.Color) -> None:
         """
         Draws a rectangle on the screen.
 
@@ -128,6 +162,9 @@ class Engine:
 
             self.gameLoop(dt)
 
+            self.updateNodes(dt)
+            self.drawNodes()
+
             self.show()
 
     def clearBg(self, color: tuple[int, int, int]) -> None:
@@ -162,3 +199,23 @@ class Engine:
             None
         """
         pygame.display.flip()
+
+    def updateNodes(self, dt: float) -> None:
+        """
+        Updates all nodes.
+
+        Args:
+            dt (float): Delta time since the last frame.
+
+        Returns:
+            None
+        """
+        for node in self._objects:
+            node.update(dt)
+
+    def drawNodes(self) -> None:
+        """
+        Draws all nodes.
+        """
+        for node in self._objects:
+            node.draw(self.drawRect)
